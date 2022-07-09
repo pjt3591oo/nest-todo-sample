@@ -11,9 +11,9 @@ import { SideEffectModule } from 'src/sideEffect/sideEffect.module';
   imports: [DatabaseModule, SideEffectModule],
   providers: [
     {
-      provide: 'TODO_REPOSITORY',
+      provide: Todo,
       useFactory: (dataSource: DataSource) => dataSource.getRepository(Todo),
-      inject: ['DATA_SOURCE'],
+      inject: [DataSource],
     },
     TodoService
   ],

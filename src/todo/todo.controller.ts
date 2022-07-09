@@ -1,5 +1,5 @@
 import { Controller, Get, Post, Put, Delete, Body, Param, Inject } from '@nestjs/common';
-import { SideEffectService } from '../sideEffect/sideEffect.service';
+import { ISideEffect, SIDE_EFFECT_TOKEN } from '../sideEffect/ISideEffect.interface';
 import { Todo } from './entity/todo.entity';
 import { TodoService } from './todo.service';
 
@@ -7,7 +7,7 @@ import { TodoService } from './todo.service';
 export class TodoController {
   constructor(
     private readonly todoService: TodoService,
-    @Inject('SIDE_EFFECT_SERVICE') private readonly sideEffectService: SideEffectService,
+    @Inject(SIDE_EFFECT_TOKEN) private readonly sideEffectService: ISideEffect,
   ) {}
 
   @Get()

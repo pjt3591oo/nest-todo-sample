@@ -1,7 +1,8 @@
 import { Injectable } from '@nestjs/common';
+import { ISideEffect } from './ISideEffect.interface';
 
 @Injectable()
-export class SideEffectService {
+export class SideEffectService implements ISideEffect{
   constructor(
   ) {}
 

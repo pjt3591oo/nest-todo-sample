@@ -1,4 +1,3 @@
-import { TypeOrmModule, TypeOrmModuleOptions } from '@nestjs/typeorm';
 import { DataSource } from 'typeorm';
 import { Module } from '@nestjs/common';
 import { Test, TestingModule } from '@nestjs/testing';
@@ -8,7 +7,7 @@ import { Todo } from './entity/todo.entity';
 
 const databaseProviders = [
   {
-    provide: 'DATA_SOURCE',
+    provide: DataSource,
     useFactory: async () => {
       const dataSource = new DataSource({
         name: 'todo',
@@ -37,9 +36,9 @@ describe('TodoService', () => {
       imports: [DatabaseModule],
       providers: [
         {
-          provide: 'TODO_REPOSITORY',
+          provide: Todo,
           useFactory: (dataSource: DataSource) => dataSource.getRepository(Todo),
-          inject: ['DATA_SOURCE'],
+          inject: [DataSource],
         },
         TodoService
       ],

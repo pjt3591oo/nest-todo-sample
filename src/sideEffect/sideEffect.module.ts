@@ -3,13 +3,13 @@ import { SideEffectService } from './sideEffect.service';
 
 @Module({
   providers: [{
-    provide: 'SIDE_EFFECT_SERVICE',
+    provide: SideEffectService,
     useFactory: () => {
       return SideEffectService;
     }
   }],
   exports: [{
-    provide: 'SIDE_EFFECT_SERVICE',
+    provide: SideEffectService,
     useFactory: () => {
       return SideEffectService;
     }

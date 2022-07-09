@@ -1,16 +1,16 @@
 import { Test, TestingModule } from '@nestjs/testing';
 import { TodoController } from './todo.controller';
 
-import { TypeOrmModule, TypeOrmModuleOptions } from '@nestjs/typeorm';
 import { DataSource } from 'typeorm';
-import { Module } from '@nestjs/common';
+import { Injectable, Module } from '@nestjs/common';
 import { TodoService } from './todo.service';
 
 import { Todo } from './entity/todo.entity';
+import { ISideEffect, SIDE_EFFECT_TOKEN } from '../sideEffect/ISideEffect.interface';
 
 const databaseProviders = [
   {
-    provide: 'DATA_SOURCE',
+    provide: DataSource,
     useFactory: async () => {
       const dataSource = new DataSource({
         name: 'todo',
@@ -31,17 +31,39 @@ const databaseProviders = [
 })
 export class DatabaseModule {}
 
+
+@Injectable()
+class SideEffectService implements ISideEffect {
+  constructor() {}
+
+  async getRandom(): Promise<number> {
+    return 11234;
+  }
+}
+
+@Module({
+  providers: [{
+    provide: SIDE_EFFECT_TOKEN,
+    useClass:  SideEffectService,
+  }],
+  exports: [{
+    provide: SIDE_EFFECT_TOKEN,
+    useClass:  SideEffectService,
+  }],
+})
+class SideEffectModule{}
+
 describe('TodoController', () => {
   let controller: TodoController;
 
   beforeEach(async () => {
     const module: TestingModule = await Test.createTestingModule({
-      imports: [DatabaseModule],
+      imports: [DatabaseModule, SideEffectModule],
       providers: [
         {
-          provide: 'TODO_REPOSITORY',
+          provide: Todo,
           useFactory: (dataSource: DataSource) => dataSource.getRepository(Todo),
-          inject: ['DATA_SOURCE'],
+          inject: [DataSource],
         },
         TodoService
       ],

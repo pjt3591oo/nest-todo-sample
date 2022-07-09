@@ -1,14 +1,15 @@
 import { Test, TestingModule } from '@nestjs/testing';
-import { INestApplication, Injectable, Module, Query } from '@nestjs/common';
+import { INestApplication, Injectable, Module } from '@nestjs/common';
 import * as request from 'supertest';
 import { DataSource } from 'typeorm';
 import { Todo } from '../src/todo/entity/todo.entity';
 import { TodoService } from '../src/todo/todo.service';
 import { TodoController } from '../src/todo/todo.controller';
+import { ISideEffect, SIDE_EFFECT_TOKEN } from '../src/sideEffect/ISideEffect.interface';
 
 const databaseProviders = [
   {
-    provide: 'DATA_SOURCE',
+    provide: DataSource,
     useFactory: async () => {
       const dataSource = new DataSource({
         name: 'todo',
@@ -30,7 +31,7 @@ const databaseProviders = [
 class DatabaseModule {}
 
 @Injectable()
-class SideEffectService {
+class SideEffectService implements ISideEffect{
   constructor() {}
 
   async getRandom(): Promise<number> {
@@ -39,16 +40,10 @@ class SideEffectService {
 }
 
 @Module({
-  providers: [{
-    provide: 'SIDE_EFFECT_SERVICE',
-    useClass: SideEffectService,
-  }],
-  exports: [{
-    provide: 'SIDE_EFFECT_SERVICE',
-    useClass: SideEffectService,
-  }],
+  providers: [{provide: SIDE_EFFECT_TOKEN, useClass: SideEffectService}],
+  exports: [{provide: SIDE_EFFECT_TOKEN, useClass: SideEffectService}],
 })
-class SideEffectModule{}
+class SideEffectModule {}
 
 describe('AppController (e2e)', () => {
   let app: INestApplication;
@@ -58,11 +53,11 @@ describe('AppController (e2e)', () => {
       imports: [DatabaseModule, SideEffectModule],
       providers: [
         {
-          provide: 'TODO_REPOSITORY',
+          provide: Todo,
           useFactory: (dataSource: DataSource) => dataSource.getRepository(Todo),
-          inject: ['DATA_SOURCE'],
+          inject: [DataSource],
         },
-        TodoService, 
+        TodoService
       ],
       controllers: [TodoController],
     }).compile();

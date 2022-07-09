@@ -5,7 +5,7 @@ import { Todo } from './entity/todo.entity';
 @Injectable()
 export class TodoService {
   constructor(
-    @Inject('TODO_REPOSITORY')
+    @Inject(Todo)
     private todoRepository: Repository<Todo>,
   ) {}
 
