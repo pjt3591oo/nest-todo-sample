@@ -2,11 +2,11 @@ import { Test, TestingModule } from '@nestjs/testing';
 import { TodoController } from './todo.controller';
 
 import { DataSource } from 'typeorm';
-import { Injectable, Module } from '@nestjs/common';
+import { Module } from '@nestjs/common';
 import { TodoService } from './todo.service';
 
 import { Todo } from './entity/todo.entity';
-import { ISideEffect, SIDE_EFFECT_TOKEN } from '../sideEffect/ISideEffect.interface';
+import { SideEffectService } from '../sideEffect/sideEffect.service';
 
 const databaseProviders = [
   {
@@ -27,45 +27,25 @@ const databaseProviders = [
 
 @Module({
   providers: [...databaseProviders],
-  exports: [...databaseProviders]
+  exports: [...databaseProviders],
 })
 export class DatabaseModule {}
-
-
-@Injectable()
-class SideEffectService implements ISideEffect {
-  constructor() {}
-
-  async getRandom(): Promise<number> {
-    return 11234;
-  }
-}
-
-@Module({
-  providers: [{
-    provide: SIDE_EFFECT_TOKEN,
-    useClass:  SideEffectService,
-  }],
-  exports: [{
-    provide: SIDE_EFFECT_TOKEN,
-    useClass:  SideEffectService,
-  }],
-})
-class SideEffectModule{}
 
 describe('TodoController', () => {
   let controller: TodoController;
 
   beforeEach(async () => {
     const module: TestingModule = await Test.createTestingModule({
-      imports: [DatabaseModule, SideEffectModule],
+      imports: [DatabaseModule],
       providers: [
         {
           provide: Todo,
-          useFactory: (dataSource: DataSource) => dataSource.getRepository(Todo),
+          useFactory: (dataSource: DataSource) =>
+            dataSource.getRepository(Todo),
           inject: [DataSource],
         },
-        TodoService
+        { provide: SideEffectService, useValue: { getRandom: () => 11234 } },
+        TodoService,
       ],
       controllers: [TodoController],
     }).compile();
@@ -77,10 +57,10 @@ describe('TodoController', () => {
     expect(controller).toBeDefined();
   });
 
-  it('조회', async() => {
+  it('조회', async () => {
     const res = await controller.findAll();
     expect(res.length).toBe(0);
-  })
+  });
 
   it('생성', async () => {
     const todo = new Todo();
@@ -88,25 +68,25 @@ describe('TodoController', () => {
     todo.description = '생성';
     todo.isComplete = 0;
     await controller.create(todo);
-    
+
     const res = await controller.findAll();
     expect(res.length).toBe(1);
-  })
-  
+  });
+
   it('상태변경', async () => {
     let todo = await controller.find(1);
-    todo.isComplete = 1
+    todo.isComplete = 1;
     await controller.update(1, todo);
 
     todo = await controller.find(1);
 
     expect(todo.isComplete).toBe(1);
-  })
-  
+  });
+
   it('삭제', async () => {
     await controller.delete(1);
 
     const res = await controller.findAll();
     expect(res.length).toBe(0);
-  })
+  });
 });

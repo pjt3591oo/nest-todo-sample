@@ -1,13 +1,24 @@
-import { Controller, Get, Post, Put, Delete, Body, Param, Inject } from '@nestjs/common';
-import { ISideEffect, SIDE_EFFECT_TOKEN } from '../sideEffect/ISideEffect.interface';
+import {
+  Controller,
+  Get,
+  Post,
+  Put,
+  Delete,
+  Body,
+  Param,
+  Inject,
+} from '@nestjs/common';
+
 import { Todo } from './entity/todo.entity';
 import { TodoService } from './todo.service';
+import { SideEffectService } from '../sideEffect/sideEffect.service';
 
 @Controller('todo')
 export class TodoController {
   constructor(
     private readonly todoService: TodoService,
-    @Inject(SIDE_EFFECT_TOKEN) private readonly sideEffectService: ISideEffect,
+    @Inject(SideEffectService)
+    private readonly sideEffectService: SideEffectService,
   ) {}
 
   @Get()

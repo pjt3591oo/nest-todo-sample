@@ -15,8 +15,8 @@ import { SideEffectModule } from 'src/sideEffect/sideEffect.module';
       useFactory: (dataSource: DataSource) => dataSource.getRepository(Todo),
       inject: [DataSource],
     },
-    TodoService
+    TodoService,
   ],
-  controllers: [TodoController]
+  controllers: [TodoController],
 })
-export class TodoModule { }
+export class TodoModule {}

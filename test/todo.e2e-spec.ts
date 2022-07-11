@@ -1,11 +1,12 @@
 import { Test, TestingModule } from '@nestjs/testing';
-import { INestApplication, Injectable, Module } from '@nestjs/common';
+import { INestApplication, Module } from '@nestjs/common';
 import * as request from 'supertest';
 import { DataSource } from 'typeorm';
 import { Todo } from '../src/todo/entity/todo.entity';
 import { TodoService } from '../src/todo/todo.service';
 import { TodoController } from '../src/todo/todo.controller';
-import { ISideEffect, SIDE_EFFECT_TOKEN } from '../src/sideEffect/ISideEffect.interface';
+
+import { SideEffectService } from '../src/sideEffect/sideEffect.service';
 
 const databaseProviders = [
   {
@@ -26,38 +27,25 @@ const databaseProviders = [
 
 @Module({
   providers: [...databaseProviders],
-  exports: [...databaseProviders]
+  exports: [...databaseProviders],
 })
 class DatabaseModule {}
-
-@Injectable()
-class SideEffectService implements ISideEffect{
-  constructor() {}
-
-  async getRandom(): Promise<number> {
-    return 11234;
-  }
-}
-
-@Module({
-  providers: [{provide: SIDE_EFFECT_TOKEN, useClass: SideEffectService}],
-  exports: [{provide: SIDE_EFFECT_TOKEN, useClass: SideEffectService}],
-})
-class SideEffectModule {}
 
 describe('AppController (e2e)', () => {
   let app: INestApplication;
 
   beforeEach(async () => {
     const moduleFixture: TestingModule = await Test.createTestingModule({
-      imports: [DatabaseModule, SideEffectModule],
+      imports: [DatabaseModule],
       providers: [
         {
           provide: Todo,
-          useFactory: (dataSource: DataSource) => dataSource.getRepository(Todo),
+          useFactory: (dataSource: DataSource) =>
+            dataSource.getRepository(Todo),
           inject: [DataSource],
         },
-        TodoService
+        { provide: SideEffectService, useValue: { getRandom: () => 11234 } },
+        TodoService,
       ],
       controllers: [TodoController],
     }).compile();
@@ -67,10 +55,7 @@ describe('AppController (e2e)', () => {
   });
 
   it('/todo (GET)', () => {
-    return request(app.getHttpServer())
-      .get('/todo')
-      .expect(200)
-      .expect([]);
+    return request(app.getHttpServer()).get('/todo').expect(200).expect([]);
   });
 
   it('/todo (POST)', () => {
@@ -87,7 +72,7 @@ describe('AppController (e2e)', () => {
         name: '생성',
         description: '생성 11234',
         isComplete: 0,
-        id: 1
+        id: 1,
       });
-  })
+  });
 });
